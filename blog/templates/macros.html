@@ -5,13 +5,42 @@
             <li>
                 {{ entry.datetime | dateformat("%d/%m/%y") }}
             </li>
+            <li>
+                <a href="{{ url_for('edit_entry', id = entry.id) }}">Edit entry</a>
+            </li>
+            <li>
+                <a href="{{ url_for('confirm_delete_entry', id = entry.id) }}">Delete entry</a>
+            </li>
         </ul>
     </div>
     <div class="col-md-10">
         <h1>
-            {{ entry.title }}
+            <a href="{{ url_for('show_entry', id = entry.id) }}">{{ entry.title }}</a>
         </h1>
         {{ entry.content | markdown }}
     </div>
 </div>
+{% endmacro %}
+
+{% macro entries_per_page(page) %}
+<script>
+    /* global $ */
+    $(document).ready(function() {
+        $('#entries').on('change', function() {
+            var selection = $(this).val();
+            window.location = ('{{ url_for("entries", page = page) }}' + '?limit=' + selection);
+        });
+    });
+</script>
+<div class="form-group">
+    <label for="entries">Entries</label>
+    <select id="entries">
+        <option disabled selected>Select One</option>
+        <option>10</option>
+        <option>25</option>
+        <option>50</option>
+        <option>100</option>
+    </select>
+</div>
+
 {% endmacro %}
