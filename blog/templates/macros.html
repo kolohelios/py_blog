@@ -5,11 +5,16 @@
             <li>
                 {{ entry.datetime | dateformat("%d/%m/%y") }}
             </li>
+            {% if current_user.is_authenticated and current_user.id == entry.author.id %}
             <li>
                 <a href="{{ url_for('edit_entry', id = entry.id) }}">Edit entry</a>
             </li>
             <li>
                 <a href="{{ url_for('confirm_delete_entry', id = entry.id) }}">Delete entry</a>
+            </li>
+            {% endif %}
+            <li>
+                Author: {{ entry.author.name }}
             </li>
         </ul>
     </div>

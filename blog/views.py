@@ -1,5 +1,5 @@
 from flask import render_template, request, redirect, url_for, flash
-from flask.ext.login import login_user, login_required
+from flask.ext.login import login_user, login_required, current_user, logout_user
 from werkzeug.security import check_password_hash
 from .database import User
 
@@ -60,6 +60,7 @@ def add_entry_post():
     entry = Entry(
         title = request.form['title'],
         content = request.form['content'],
+        author = current_user,
     )
     session.add(entry)
     session.commit()
@@ -110,9 +111,11 @@ def confirm_delete_entry(id):
 def delete_entry(id):
     
     entry = session.query(Entry).get(id)
-    
-    session.delete(entry)
-    return redirect(url_for('entries'))
+    if entry.author.id == current_user.id:
+        session.delete(entry)
+        return redirect(url_for('entries'))
+    else:
+        return 'You are not authorized to delete this record.'
     
 @app.route('/login', methods=['GET'])
 def login_get():
@@ -129,3 +132,11 @@ def login_post():
         
     login_user(user)
     return redirect(request.args.get('next') or url_for('entries'))
+
+@app.route('/logout', methods=['GET'])
+def logout():
+    logout_user()
+    
+    return redirect(url_for('entries'))
+    
+    
