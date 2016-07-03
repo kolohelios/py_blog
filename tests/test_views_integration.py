@@ -4,8 +4,9 @@ from urllib.parse import urlparse
 
 from werkzeug.security import generate_password_hash
 
-# configure your app to use the testing database
-os.environ['config_path'] = 'blog.config.TestingConfig'
+# configure your app to use the testing configuration
+if not 'CONFIG_PATH' in os.environ:
+    os.environ['CONFIG_PATH'] = 'blog.config.TestingConfig'
 
 from blog import app
 from blog.database import Base, engine, session, User, Entry
