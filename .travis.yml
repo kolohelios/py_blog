@@ -6,7 +6,6 @@ env:
     - CONFIG_PATH=blog.config.TravisConfig
 before_script:
     - psql -c 'create database "blogful-test";' -U postgres
-    - sudo -u postgres createuser ubuntu
 script:
     - PYTHONPATH=. python3 tests/test_filters_unit.py
     - PYTHONPATH=. python3 tests/test_filters_integration.py
