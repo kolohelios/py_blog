@@ -39,6 +39,7 @@ class TestViews(unittest.TestCase):
         engine.dispose()
         Base.metadata.drop_all(engine)
         self.browser.quit()
+        os.system('pgrep phantomjs | xargs kill')
         
     def test_login_correct(self):
         self.browser.visit('http://127.0.0.1:8080/login')
@@ -55,6 +56,13 @@ class TestViews(unittest.TestCase):
         button = self.browser.find_by_css('button[type=submit]')
         button.click()
         self.assertEqual(self.browser.url, 'http://127.0.0.1:8080/login')
+        
+    def test_entries_dropdown(self):
+        self.browser.visit('http://127.0.0.1:8080')
+        dropdown = self.browser.find_by_id('entries').first
+        option = dropdown.find_by_text('50')
+        option.click()
+        self.assertEqual(self.browser.url, 'http://127.0.0.1:8080/page/1?limit=50')
 
 if __name__ == '__main__':
     unittest.main()
