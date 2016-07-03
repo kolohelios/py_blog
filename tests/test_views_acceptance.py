@@ -13,10 +13,19 @@ os.environ['CONFIG_PATH'] = 'blog.config.TestingConfig'
 from blog import app
 from blog.database import Base, engine, session, User
 
+'''adding engine disposition and drop_all before setup in case earlier test suite run was interrupted'''
+engine.dispose()
+Base.metadata.drop_all(engine)
+
 class TestViews(unittest.TestCase):
     def setUp(self):
         ''' Test setup '''
+        
         self.browser = Browser('phantomjs')
+        
+        # if we don't set the window size, we won't be able to interact with UI that might 
+        # be hidden because of our media queries with a smaller emulated window
+        self.browser.driver.set_window_size(1120, 550)
         
         # set up the tables in the database
         Base.metadata.create_all(engine)
@@ -82,7 +91,7 @@ class TestViews(unittest.TestCase):
         self.assertFalse(self.browser.is_element_present_by_css('[href="/logout"]'))
         self.assertFalse(self.browser.is_element_present_by_css('[href="/entry/add"]'))
         
-    def test_add_entry_while_not_logged_in(self):
+    def test_add_entry_while_not_logged_in_then_log_in_as_other_user_and_try_delete_and_edit(self):
         test_title = 'A New Blog Post'
         test_content = 'This is a test of a new blog post.'
         self.browser.visit('http://127.0.0.1:8080/entry/add')
@@ -98,7 +107,22 @@ class TestViews(unittest.TestCase):
         self.assertEqual(self.browser.url, 'http://127.0.0.1:8080/')
         self.assertTrue(self.browser.is_element_present_by_text(test_title))
         self.assertTrue(self.browser.is_element_present_by_text(test_content))
-        
+        logout_link = self.browser.find_by_css('[href="/logout"]').first
+        logout_link.click()
+        self.browser.visit('http://127.0.0.1:8080/logout')
+        login_link = self.browser.find_by_css('[href="/login"]').first
+        login_link.click()
+        self.browser.fill('email', 'bob@example.com')
+        self.browser.fill('password', 'test')
+        button = self.browser.find_by_css('button[type=submit]')
+        button.click()
+        self.assertEqual(self.browser.url, 'http://127.0.0.1:8080/')
+        self.browser.visit('http://127.0.0.1:8080/entry/1/delete')
+        self.assertTrue(self.browser.is_element_present_by_text('You are not authorized to delete this record.'))
+        self.assertFalse(self.browser.is_element_present_by_css('button[type="submit"]'))        
+        self.browser.visit('http://127.0.0.1:8080/entry/1/edit')
+        self.assertTrue(self.browser.is_element_present_by_text('You are not authorized to edit this record.'))
+        self.assertFalse(self.browser.is_element_present_by_css('button[type="submit"]'))  
 
 if __name__ == '__main__':
     unittest.main()
