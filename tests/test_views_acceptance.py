@@ -55,7 +55,8 @@ class TestViews(unittest.TestCase):
         engine.dispose()
         Base.metadata.drop_all(engine)
         self.browser.quit()
-        os.system('pgrep phantomjs | xargs kill')
+        if os.environ['CONFIG_PATH'] != 'blog.config.TravisConfig':
+            os.system('pgrep phantomjs | xargs kill')
         
     def test_login_correct(self):
         self.browser.visit('http://127.0.0.1:8080/login')
