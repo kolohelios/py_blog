@@ -13,6 +13,8 @@ PAGINATE_BY = 10
 def entries(page = 1):
     # zero-indexed page
     
+    
+    limit = None
     try:
         limit = int(request.args.get('limit'))
         if (limit > 0) and (limit < 99999999):
@@ -78,20 +80,22 @@ def show_entry(id):
 @login_required
 def edit_entry(id):
     
-    if entry.author.id == current_user.id:
-        entry = session.query(Entry).filter(Entry.id == id)[0]
-        return render_template('entry-edit.html',
+    entry = session.query(Entry).get(id)
+    if not entry.author == current_user:
+        return 'You are not authorized to edit this record.'
+    else:
+         return render_template('entry-edit.html',
             entry = entry
         )
-    else:
-        return 'You are not authorized to edit this record.'
 
 @app.route('/entry/<int:id>/edit', methods=['POST'])
 @login_required
 def save_entry(id):
     
-    if entry.author.id == current_user.id:
-        entry = session.query(Entry).get(id)
+    entry = session.query(Entry).get(id)
+    if not entry.author == current_user:
+       return 'You are not authorized to edit this record.'
+    else:
         print(entry.title)
         entry.title = request.form['title']
         print(entry.title)
@@ -99,32 +103,29 @@ def save_entry(id):
         
         session.commit()
         return redirect(url_for('entries'))
-    else:
-        return 'You are not authorized to edit this record.'
     
 @app.route('/entry/<int:id>/delete', methods=['GET'])
 @login_required
 def confirm_delete_entry(id):
     
     entry = session.query(Entry).get(id)
-    
-    if entry.author.id == current_user.id:
-        return render_template('delete-confirmation.html',
+    if not entry.author.id == current_user.id:
+        return 'You are not authorized to delete this record.'
+    else:
+       return render_template('delete-confirmation.html',
             entry = entry
         )
-    else:
-        return 'You are not authorized to delete this record.'
     
 @app.route('/entry/<int:id>/delete', methods=['POST'])
 @login_required
 def delete_entry(id):
     
     entry = session.query(Entry).get(id)
-    if entry.author.id == current_user.id:
+    if entry.author == current_user:
+        return 'You are not authorized to delete this record.'
+    else:
         session.delete(entry)
         return redirect(url_for('entries'))
-    else:
-        return 'You are not authorized to delete this record.'
     
 @app.route('/login', methods=['GET'])
 def login_get():
