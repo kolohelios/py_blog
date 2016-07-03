@@ -3,7 +3,7 @@
 
 {% block content %}
 
-{{ macros.entries_per_page(page) }}
+{{ macros.entries_per_page(page = 1) }}
 
 {% for entry in entries %}
 {{ macros.render_entry(entry) }}

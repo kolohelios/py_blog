@@ -14,23 +14,20 @@ class FilterTests(unittest.TestCase):
         date = datetime.date(1999, 12, 31)
         formatted = dateformat(date, '%y/%m/%d')
         self.assertEqual(formatted, '99/12/31')
+        
+    def test_date_format_future(self):
+        date = datetime.date(2222, 2, 22)
+        formatted = dateformat(date, '%y/%m/%d')
+        self.assertEqual(formatted, '22/02/22')
     
     def test_date_format_none(self):
         formatted = dateformat(None, '%y/%m/%d')
         self.assertEqual(formatted, None)
-    
-    def test_markdown_format_emptystring(self):
-        formatted = markdown('')
-        self.assertEqual(formatted, '')    
         
-    def test_markdown_format_none(self):
-        with self.assertRaises(TypeError):
-            formatted = markdown(None)
-    
-    # the following is not a unit test, it's actually an integration test (and it's currently failing)        
-    # def test_markdown(self):
-    #     formatted = markdown('# Test Header\n*bolding*\n1. list item one\n2. list item two')
-    #     self.assertEqual(formatted, '<h1>Test Header</h1>\n<p><em>bolding</em></p>\n<ol>\n<li>list item one</li>\n<li>list item two</li></ol>')
-            
+    def test_date_format_empty(self):
+        with self.assertRaises(ValueError):
+            date = datetime.date(0, 0, 0)
+            formatted = dateformat(date, '%y/%m/%d')
+
 if __name__ == '__main__':
     unittest.main()

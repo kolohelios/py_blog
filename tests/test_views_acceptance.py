@@ -27,6 +27,12 @@ class TestViews(unittest.TestCase):
         session.add(self.user)
         session.commit()
         
+        # create a second example user
+        self.user = User(name = 'Bob', email = 'bob@example.com',
+            password = generate_password_hash('test'))
+        session.add(self.user)
+        session.commit()
+        
         self.process = multiprocessing.Process(target = app.run, kwargs = { 'port': 8080 })
         self.process.start()
         time.sleep(1)
@@ -48,14 +54,20 @@ class TestViews(unittest.TestCase):
         button = self.browser.find_by_css('button[type=submit]')
         button.click()
         self.assertEqual(self.browser.url, 'http://127.0.0.1:8080/')
+        self.assertFalse(self.browser.is_element_present_by_css('[href="/login"]'))
+        self.assertTrue(self.browser.is_element_present_by_css('[href="/logout"]'))
+        self.assertTrue(self.browser.is_element_present_by_css('[href="/entry/add"]'))
         
     def test_login_incorrect(self):
         self.browser.visit('http://127.0.0.1:8080/login')
-        self.browser.fill('email', 'bob@example.com')
+        self.browser.fill('email', 'cliff@example.com')
         self.browser.fill('password', 'test')
         button = self.browser.find_by_css('button[type=submit]')
         button.click()
         self.assertEqual(self.browser.url, 'http://127.0.0.1:8080/login')
+        self.assertTrue(self.browser.is_element_present_by_css('[href="/login"]'))
+        self.assertFalse(self.browser.is_element_present_by_css('[href="/logout"]'))
+        self.assertFalse(self.browser.is_element_present_by_css('[href="/entry/add"]'))
         
     def test_entries_dropdown(self):
         self.browser.visit('http://127.0.0.1:8080')
@@ -63,6 +75,30 @@ class TestViews(unittest.TestCase):
         option = dropdown.find_by_text('50')
         option.click()
         self.assertEqual(self.browser.url, 'http://127.0.0.1:8080/page/1?limit=50')
+
+    def test_not_logged_in_user(self):
+        self.browser.visit('http://127.0.0.1:8080')
+        self.assertTrue(self.browser.is_element_present_by_css('[href="/login"]'))
+        self.assertFalse(self.browser.is_element_present_by_css('[href="/logout"]'))
+        self.assertFalse(self.browser.is_element_present_by_css('[href="/entry/add"]'))
+        
+    def test_add_entry_while_not_logged_in(self):
+        test_title = 'A New Blog Post'
+        test_content = 'This is a test of a new blog post.'
+        self.browser.visit('http://127.0.0.1:8080/entry/add')
+        self.browser.fill('email', 'alice@example.com')
+        self.browser.fill('password', 'test')
+        button = self.browser.find_by_css('button[type=submit]')
+        button.click()
+        self.assertEqual(self.browser.url, 'http://127.0.0.1:8080/entry/add')
+        self.browser.fill('title', test_title)
+        self.browser.fill('content', test_content)
+        button = self.browser.find_by_css('button[type=submit]')
+        button.click()
+        self.assertEqual(self.browser.url, 'http://127.0.0.1:8080/')
+        self.assertTrue(self.browser.is_element_present_by_text(test_title))
+        self.assertTrue(self.browser.is_element_present_by_text(test_content))
+        
 
 if __name__ == '__main__':
     unittest.main()
